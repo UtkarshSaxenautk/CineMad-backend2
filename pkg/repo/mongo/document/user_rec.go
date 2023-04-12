@@ -14,14 +14,15 @@ type DateOfBirth struct {
 
 type User struct {
 	ID                primitive.ObjectID
-	Email             string      `bson:"email,omitempty"`
-	Username          string      `bson:"username,omitempty"`
-	PasswordHash      string      `bson:"password_hash,omitempty"`
-	FullName          string      `bson:"full_name,omitempty"`
-	Role              string      `bson:"role"`
-	Dob               DateOfBirth `bson:"date_of_birth,omitempty"`
-	CreateTs          time.Time   `bson:"create_ts"`
-	UpdateTs          time.Time   `bson:"update_ts"`
-	LoginTs           time.Time   `bson:"login_ts"`
-	PreviousPasswords []string    `bson:"previous_passwords"`
+	Email             string               `bson:"email,omitempty"`
+	Username          string               `bson:"username,omitempty"`
+	PasswordHash      string               `bson:"password_hash,omitempty"`
+	FullName          string               `bson:"full_name,omitempty"`
+	MoviesWatched     []primitive.ObjectID `bson:"movies_watched"`
+	MoodPreviously    string               `bson:"previous_mood"`
+	Dob               DateOfBirth          `bson:"date_of_birth,omitempty"`
+	CreateTs          time.Time            `bson:"create_ts"`
+	UpdateTs          time.Time            `bson:"update_ts"`
+	LoginTs           time.Time            `bson:"login_ts"`
+	PreviousPasswords []string             `bson:"previous_passwords"`
 }

@@ -19,6 +19,7 @@ type SVC interface {
 	GetMoviesByTag(ctx context.Context, tag string) ([]model.Movie, error)
 	GetMoviesByTags(ctx context.Context, tags []string) ([]model.Movie, error)
 	AddMovieInDB(ctx context.Context, movie model.Movie) error
+	GetMoviesByTagsFromDB(ctx context.Context, tags []string) ([]model.Movie, error)
 }
 
 //go:generate mockgen -destination=mock_dao.go -package=svc . Dao
@@ -28,6 +29,7 @@ type Dao interface {
 	GetUser(ctx context.Context, email string) (string, error)
 	UpdatePassword(ctx context.Context, user model.User, nPass string) error
 	AddMovie(ctx context.Context, movie model.Movie) error
+	GetMoviesByTags(ctx context.Context, tags []string) ([]model.Movie, error)
 }
 
 type Sdk interface {

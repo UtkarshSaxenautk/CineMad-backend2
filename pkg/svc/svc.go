@@ -16,13 +16,14 @@ type svc struct {
 
 var (
 	//these are public errors, please do not include any technical wordings here
-	ErrNoData               = errors.New("no data found")
-	ErrBadRequest           = errors.New("mandatory input data missing")
-	ErrDeleteFailed         = errors.New("domain delete failed")
-	ErrUnexpected           = errors.New("unexpected error")
-	ErrEmailAlreadyInUse    = errors.New("email is already in use")
-	ErrUserNameAlreadyInUse = errors.New("username is already in use")
-	ErrUserNotAuthorized    = errors.New("user not authenticated")
+	ErrNoData                = errors.New("no data found")
+	ErrBadRequest            = errors.New("mandatory input data missing")
+	ErrDeleteFailed          = errors.New("domain delete failed")
+	ErrUnexpected            = errors.New("unexpected error")
+	ErrEmailAlreadyInUse     = errors.New("email is already in use")
+	ErrUserNameAlreadyInUse  = errors.New("username is already in use")
+	ErrUserNotAuthorized     = errors.New("user not authenticated")
+	ErrMissingImportantField = errors.New("important field missing")
 )
 
 func New(dao Dao, cache Cache, sdk Sdk) SVC {

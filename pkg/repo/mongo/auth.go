@@ -6,6 +6,7 @@ import (
 	"authentication-ms/pkg/svc"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
@@ -43,7 +44,8 @@ func (d *dal) CreateUser(ctx context.Context, user model.User) error {
 		{"username", user.Username},
 		{"password_hash", user.PasswordHash},
 		{"full_name", user.FullName},
-		{"role", user.Role},
+		{"movies_watched", []primitive.ObjectID{}},
+		{"previous_mood", ""},
 		{"date_of_birth", user.Dob},
 		{"create_ts", time.Now()},
 		{"update_ts", time.Now()}}

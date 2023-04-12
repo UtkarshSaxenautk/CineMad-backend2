@@ -49,3 +49,17 @@ func (s *svc) AddMovieInDB(ctx context.Context, movie model.Movie) error {
 	log.Println("movie: ", movie, "inserted successfully")
 	return nil
 }
+
+func (s *svc) GetMoviesByTagsFromDB(ctx context.Context, tags []string) ([]model.Movie, error) {
+	if len(tags) == 0 {
+		log.Println("tags are empty..")
+		return nil, ErrMissingImportantField
+	}
+	movies, err := s.dao.GetMoviesByTags(ctx, tags)
+	if err != nil {
+		log.Println("error in getting movies..")
+		return nil, err
+	}
+	log.Println(movies, "   in svc")
+	return movies, nil
+}

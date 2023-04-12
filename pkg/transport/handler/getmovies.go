@@ -51,7 +51,8 @@ func GetMoviesByTags(s svc.SVC) http.HandlerFunc {
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, errBadRequest)
 			return
 		}
-		res, err := s.GetMoviesByTags(ctx, request.Tags)
+		//res, err := s.GetMoviesByTags(ctx, request.Tags)
+		res, err := s.GetMoviesByTagsFromDB(ctx, request.Tags)
 		if err != nil {
 			log.Println("error in getting movies...", err)
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusInternalServerError, err)
