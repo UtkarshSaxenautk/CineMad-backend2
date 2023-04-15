@@ -41,7 +41,7 @@ func ChangePassword(s svc.SVC) http.HandlerFunc {
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusInternalServerError, svc.ErrUnexpected)
 			return
 		}
-		if authorized == false {
+		if authorized == "" {
 			log.Println("user not authorized to changed password")
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusForbidden, svc.ErrUserNotAuthorized)
 			return

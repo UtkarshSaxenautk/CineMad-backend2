@@ -13,7 +13,7 @@ type DateOfBirth struct {
 }
 
 type User struct {
-	ID                primitive.ObjectID
+	ID                primitive.ObjectID   `bson:"_id"`
 	Email             string               `bson:"email,omitempty"`
 	Username          string               `bson:"username,omitempty"`
 	PasswordHash      string               `bson:"password_hash,omitempty"`

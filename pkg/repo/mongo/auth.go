@@ -133,11 +133,11 @@ func (d *dal) UpdatePassword(ctx context.Context, user model.User, nPass string)
 	return svc.ErrUnexpected
 }
 
-func (d *dal) GetUser(ctx context.Context, email string) (string, error) {
+func (d *dal) GetUser(ctx context.Context, email string) (string, string, error) {
 	var user document.User
 	if email == "" {
 		log.Println("empty email field in repo layer at login time ")
-		return "", svc.ErrNoData
+		return "", "", svc.ErrNoData
 	}
 	filter := bson.M{
 		"email": email,
@@ -151,7 +151,7 @@ func (d *dal) GetUser(ctx context.Context, email string) (string, error) {
 	res, err := d.collLogRec.UpdateOne(ctx, filter, update)
 	if err != nil {
 		log.Println("error in updating login_ts ", err)
-		return "", svc.ErrUnexpected
+		return "", "", svc.ErrUnexpected
 	}
 
 	if res.ModifiedCount > 0 || res.UpsertedCount > 0 {
@@ -159,11 +159,32 @@ func (d *dal) GetUser(ctx context.Context, email string) (string, error) {
 		err = d.collLogRec.FindOne(ctx, filter).Decode(&user)
 		if err != nil {
 			log.Println("error in getting hash by email : ", err)
-			return "", err
+			return "", "", err
 		}
 		log.Println("pass : ", user.PasswordHash)
-		return user.PasswordHash, nil
+		return user.PasswordHash, user.ID.Hex(), nil
 	}
 
-	return "", svc.ErrUnexpected
+	return "", "", svc.ErrUnexpected
+}
+
+func (d *dal) CheckEmailExist(ctx context.Context, user model.User) (bool, error) {
+	if user.Email == "" {
+		log.Println("email is missing in dao: ", svc.ErrMissingImportantField)
+		return false, svc.ErrMissingImportantField
+	}
+	filter := bson.M{
+		"email": user.Email,
+	}
+	countEmail, err := d.collLogRec.CountDocuments(ctx, filter)
+	if err != nil {
+		log.Println("error in db : to count email ", err)
+		return false, err
+	}
+	if countEmail > 0 {
+		log.Println("email exist : success")
+		return true, nil
+	}
+	return false, nil
+
 }

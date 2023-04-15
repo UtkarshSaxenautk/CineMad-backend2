@@ -4,14 +4,18 @@ import (
 	"authentication-ms/pkg/model"
 	"context"
 	"errors"
+	"fmt"
+	"github.com/dgrijalva/jwt-go"
 	"golang.org/x/crypto/bcrypt"
 	"log"
+	"time"
 )
 
 type svc struct {
 	dao   Dao
 	sdk   Sdk
 	cache Cache
+	mail  Mail
 }
 
 var (
@@ -26,8 +30,8 @@ var (
 	ErrMissingImportantField = errors.New("important field missing")
 )
 
-func New(dao Dao, cache Cache, sdk Sdk) SVC {
-	s := &svc{dao, sdk, cache}
+func New(dao Dao, cache Cache, sdk Sdk, mail Mail) SVC {
+	s := &svc{dao, sdk, cache, mail}
 	return s
 }
 
@@ -70,10 +74,6 @@ func (s *svc) Signup(ctx context.Context, user model.User) error {
 	return nil
 }
 
-func (s *svc) ForgotPassword(email string) error {
-	return nil
-}
-
 func (s *svc) hashPassword(password string) (string, error) {
 	// Convert password string to byte slice
 	var passwordBytes = []byte(password)
@@ -91,24 +91,57 @@ func (s *svc) passwordsMatch(hashedPassword, currPassword string) bool {
 	return err == nil
 }
 
-func (s *svc) SignIn(ctx context.Context, email string, password string) (bool, error) {
-	if email == "" || password == "" {
-		return false, ErrBadRequest
+func (s *svc) createJWt(userID string) (string, error) {
+	secretKey := []byte("ussr")
+
+	// Create a new token
+	token := jwt.New(jwt.SigningMethodHS256)
+
+	// Set the claims for the token
+	claims := token.Claims.(jwt.MapClaims)
+	claims["sub"] = userID                   // Subject (typically the user ID)
+	claims["iat"] = time.Now().Unix()        // Issued At (current time)
+	claims["exp"] = time.Now().Unix() + 3600 // Expiration Time (1 hour from now)
+
+	// Sign the token with the secret key
+	tokenString, err := token.SignedString(secretKey)
+	if err != nil {
+		fmt.Println("Error creating JWT:", err)
+		return "", err
 	}
-	hashedPassword, err := s.dao.GetUser(ctx, email)
+	return tokenString, nil
+}
+
+func (s *svc) SignIn(ctx context.Context, email string, password string) (string, error) {
+	if email == "" || password == "" {
+		return "", ErrBadRequest
+	}
+	hashedPassword, userID, err := s.dao.GetUser(ctx, email)
 
 	if err != nil {
 		log.Println("error in getting user from email")
-		return false, ErrUnexpected
+		return "", ErrUnexpected
 	}
 
 	matched := s.passwordsMatch(hashedPassword, password)
 	if matched {
 		log.Println("password matched...")
-		return true, nil
+		log.Println("userID we got at time of login : ", userID)
+		newJwt, err := s.createJWt(userID)
+		if err != nil {
+			log.Println("error in generating jwt")
+			return "", err
+		}
+		err = s.cache.SetJwtInCache(newJwt, userID)
+		if err != nil {
+			log.Println("error in setting jwt and userID")
+			return "", err
+		}
+		log.Println("new jwt : ", newJwt)
+		return newJwt, nil
 	}
 	log.Println("password mismatched...")
-	return false, ErrUserNotAuthorized
+	return "", ErrUserNotAuthorized
 }
 
 func (s *svc) ChangePassword(ctx context.Context, user model.User, newPassword string) error {
@@ -130,4 +163,87 @@ func (s *svc) ChangePassword(ctx context.Context, user model.User, newPassword s
 	}
 	log.Println("password successfully changed...")
 	return nil
+}
+
+func (s *svc) updateMoodOfUser(ctx context.Context, userID string, mood string) error {
+	if userID == "" || mood == "" {
+		log.Println("empty fields : ", " userID : ", userID, " mood : ", mood)
+		return ErrMissingImportantField
+	}
+	err := s.dao.UpdateUserMood(ctx, userID, mood)
+	if err != nil {
+		log.Println("error in updating mood of user : ", userID, " in svc : ", err)
+		return err
+	}
+	log.Println("mood updated successfully")
+	return nil
+}
+
+func (s *svc) UpdateUserWatchedMovies(ctx context.Context, jwt string, movieID string) error {
+	if jwt == "" || movieID == "" {
+		log.Println("empty fields :  jwt : ", jwt, " movieID : ", movieID)
+		return ErrMissingImportantField
+	}
+	userID, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting userID from jwt in svc : ", err)
+		return err
+	}
+	err = s.dao.UpdateUserWatchedMovies(ctx, userID, movieID)
+	if err != nil {
+		log.Println("error in updating watched movies of user : ", userID, " : ", userID)
+		return err
+	}
+	return nil
+}
+
+func (s *svc) ForgotPassword(ctx context.Context, user model.User) error {
+	if user.Email == "" {
+		log.Println("email is missing : ", ErrBadRequest)
+		return ErrBadRequest
+	}
+	exist, err := s.dao.CheckEmailExist(ctx, user)
+	if err != nil {
+		log.Println("email exist check internal error : ", err)
+		return ErrUnexpected
+	}
+	if !exist {
+		log.Println("email doesn't exist: ")
+		return ErrNoData
+	}
+	otp, err := s.GenerateOtp()
+	if err != nil {
+		log.Println("error in generating otp : ", err)
+		return err
+	}
+	err = s.mail.SendMail(user, otp)
+	if err != nil {
+		log.Println("error in sending mail at svc : ", err)
+		return err
+	}
+	log.Println("mail sent successfully")
+	err = s.cache.SetInCache(user.Email, otp)
+	if err != nil {
+		log.Println("error in setting otp cache: ", err)
+		return err
+	}
+	return nil
+}
+
+func (s *svc) ProcessOtp(user model.User, otp string) (bool, error) {
+	if user.Email == "" || otp == "" {
+		log.Println("missing necessary field: ", ErrMissingImportantField)
+		return false, ErrMissingImportantField
+	}
+	cachedOtp, err := s.cache.GetFromCache(user.Email)
+	if err != nil {
+		log.Println("error in finding email: ", err)
+		return false, ErrUnexpected
+	}
+	log.Println("cachedOtp : ", cachedOtp, " otp : ", otp)
+	if otp == cachedOtp {
+		log.Println("success in verifying otp")
+		return true, nil
+	}
+	return false, nil
 }

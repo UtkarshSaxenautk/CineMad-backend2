@@ -29,7 +29,8 @@ type User struct {
 	Username          string
 	PasswordHash      string
 	FullName          string
-	Role              string
+	MoviesWatched     []string
+	MoodPreviously    string
 	Dob               DateOfBirth
 	CreateTs          time.Time
 	UpdateTs          time.Time

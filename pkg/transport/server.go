@@ -3,6 +3,7 @@ package transport
 import (
 	"authentication-ms/pkg/config"
 	cache2 "authentication-ms/pkg/repo/cache"
+	mail2 "authentication-ms/pkg/repo/mail"
 	"authentication-ms/pkg/repo/mongo"
 	sdk2 "authentication-ms/pkg/repo/sdk"
 	svc2 "authentication-ms/pkg/svc"
@@ -27,8 +28,9 @@ func NewServer(appConfig config.App) (*Server, error) {
 
 	dao := mongo.NewDal(db.Database)
 	cache := cache2.NewCache(context.Background())
+	mail := mail2.NewMail()
 	sdk := sdk2.New()
-	svc := svc2.New(dao, cache, sdk)
+	svc := svc2.New(dao, cache, sdk, mail)
 	worker, err := NewWorker(svc)
 	if err != nil {
 		log.Fatal("worker connection failed")

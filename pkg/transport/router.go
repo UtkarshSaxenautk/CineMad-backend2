@@ -28,10 +28,15 @@ func (r *Router) Initialize() *Router {
 	(*cf).HandleFunc("/signup", handler.Signup(r.svc)).Methods(http.MethodPost)
 	(*cf).HandleFunc("/signIn", handler.SignIn(r.svc)).Methods(http.MethodGet)
 	(*cf).HandleFunc("/changepassword", handler.ChangePassword(r.svc)).Methods(http.MethodPost)
+	(*cf).HandleFunc("/forgot", handler.ForgotPassword(r.svc)).Methods(http.MethodPost)
+	(*cf).HandleFunc("/otp/{email}", handler.ProcessOtp(r.svc)).Methods(http.MethodPost)
+	uf := (*r).PathPrefix("/user").Subrouter()
+	(*uf).HandleFunc("/updateWatchedMovie", handler.UpdateUserWatchedMovie(r.svc)).Methods(http.MethodPost)
 	mf := (*r).PathPrefix("/movie").Subrouter()
 	(*mf).HandleFunc("/getMovieByTag/{tag}", handler.GetMovies(r.svc)).Methods(http.MethodGet)
 	(*mf).HandleFunc("/getMovieByTags", handler.GetMoviesByTags(r.svc)).Methods(http.MethodGet)
 	(*mf).HandleFunc("/addMovie", handler.AddMovie(r.svc)).Methods(http.MethodPost)
+
 	return r
 }
 
