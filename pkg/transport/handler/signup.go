@@ -27,6 +27,7 @@ type SignupRequest struct {
 
 func Signup(s svc.SVC) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		//(w).Header().Set("Access-Control-Allow-Origin", "http://localhost:1234")
 		var request SignupRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {

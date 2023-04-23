@@ -25,16 +25,19 @@ type DateOfBirth struct {
 }
 
 type User struct {
-	Email             string
-	Username          string
-	PasswordHash      string
-	FullName          string
-	MoviesWatched     []string
-	MoodPreviously    string
-	Dob               DateOfBirth
-	CreateTs          time.Time
-	UpdateTs          time.Time
-	LoginTs           time.Time
-	PreviousPasswords []string
-	Otp               string
+	UserID                   string
+	Email                    string
+	Username                 string
+	PasswordHash             string
+	FullName                 string
+	MoviesWatched            []string
+	MoviesWatchedInformation []Movie
+	WatchLater               []Movie
+	MoodPreviously           string
+	Dob                      DateOfBirth
+	CreateTs                 time.Time
+	UpdateTs                 time.Time
+	LoginTs                  time.Time
+	PreviousPasswords        []string
+	Otp                      string
 }

@@ -25,6 +25,8 @@ type SVC interface {
 	AddMovieInDB(ctx context.Context, movie model.Movie) error
 	GetMoviesByTagsFromDB(ctx context.Context, tags []string) ([]model.Movie, error)
 	UpdateUserWatchedMovies(ctx context.Context, jwt string, movieID string) error
+	GetUserProfile(ctx context.Context, userID string) (user model.User, err error)
+	UpdateWatchLater(ctx context.Context, jwt string, movieID string, isMovieDB bool, showType string) error
 }
 
 //go:generate mockgen -destination=mock_dao.go -package=svc . Dao
@@ -38,6 +40,9 @@ type Dao interface {
 	UpdateUserMood(ctx context.Context, userId string, mood string) error
 	UpdateUserWatchedMovies(ctx context.Context, userID string, movieID string) error
 	CheckEmailExist(ctx context.Context, user model.User) (bool, error)
+	GetUserProfile(ctx context.Context, userID string) (user model.User, err error)
+	GetMovieByMovieID(ctx context.Context, movieID string) (model.Movie, error)
+	AddMovieToWatchLater(ctx context.Context, userID string, movie model.Movie) error
 }
 
 //go:generate mockgen -destination=mock_svc.go -package=svc . SVC
@@ -46,6 +51,7 @@ type Mail interface {
 }
 
 type Sdk interface {
-	GetMovie(ctx context.Context, tag string) ([]model.Movie, error)
+	//GetMovie(ctx context.Context, tag string) ([]model.Movie, error)
 	GetMovieByKeyword(ctx context.Context, tag string) ([]model.Movie, error)
+	GetMovieByID(id string) (model.Movie, error)
 }

@@ -6,6 +6,7 @@ import (
 	"authentication-ms/pkg/svc"
 	"context"
 	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 	"time"
@@ -83,4 +84,42 @@ func (d *dal) GetMoviesByTags(ctx context.Context, tags []string) ([]model.Movie
 	}
 	log.Println(movies, "  in repo")
 	return movies, nil
+}
+
+func (d *dal) GetMovieByMovieID(ctx context.Context, movieID string) (model.Movie, error) {
+	if movieID == "" {
+		return model.Movie{}, svc.ErrBadRequest
+	}
+
+	mid, err := primitive.ObjectIDFromHex(movieID)
+	if err != nil {
+		log.Println("invalid hex : ", movieID)
+		return model.Movie{}, err
+	}
+	filter := bson.M{
+		"_id": mid,
+	}
+
+	//filter := bson.D{}
+	//opts := options.Find().SetLimit(int64(Limit))
+	var docMovie document.Movie
+	err = d.collMovieRec.FindOne(ctx, filter).Decode(&docMovie)
+	if err != nil {
+		log.Println("error in Find query")
+		return model.Movie{}, err
+	}
+
+	var movie model.Movie
+
+	movie = model.Movie{
+		ID:        docMovie.ID.Hex(),
+		Name:      docMovie.Name,
+		Url:       docMovie.Url,
+		ImageUrl:  docMovie.ImageUrl,
+		MovieId:   docMovie.MovieID,
+		LeadActor: docMovie.LeadActor,
+		Tags:      docMovie.Tags,
+	}
+	log.Println(movie, "  in repo")
+	return movie, nil
 }

@@ -36,14 +36,8 @@ func New(dao Dao, cache Cache, sdk Sdk, mail Mail) SVC {
 }
 
 func (s *svc) Signup(ctx context.Context, user model.User) error {
-	emptyDob := model.DateOfBirth{
-		Date:      -1,
-		Year:      -1,
-		Month:     -1,
-		MonthName: "",
-	}
 	log.Println(user)
-	if user.Email == "" || user.Username == "" || user.PasswordHash == "" || user.Dob == emptyDob || user.FullName == "" {
+	if user.Email == "" || user.Username == "" || user.PasswordHash == "" || user.FullName == "" {
 		log.Println("missing necessary field...")
 		return ErrBadRequest
 	}
@@ -246,4 +240,68 @@ func (s *svc) ProcessOtp(user model.User, otp string) (bool, error) {
 		return true, nil
 	}
 	return false, nil
+}
+
+func (s *svc) GetUserProfile(ctx context.Context, jwt string) (user model.User, err error) {
+	if jwt == "" {
+		log.Println("jwt is empty")
+		err = ErrMissingImportantField
+		return
+	}
+	userID, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting userId from jwt", err)
+		return
+	}
+	user, err = s.dao.GetUserProfile(ctx, userID)
+
+	if err != nil {
+		log.Println("error in getting user from userID")
+		return
+	}
+	var movies []model.Movie
+	for _, mid := range user.MoviesWatched {
+		movie, err := s.dao.GetMovieByMovieID(ctx, mid)
+		if err != nil {
+			log.Println("error in getting movie of mid : ", mid)
+			continue
+		}
+		movies = append(movies, movie)
+	}
+	user.MoviesWatchedInformation = movies
+	return
+}
+
+func (s *svc) UpdateWatchLater(ctx context.Context, jwt string, movieID string, isMovieDB bool, showType string) error {
+	if jwt == "" {
+		log.Println("userId is empty")
+		return ErrMissingImportantField
+	}
+	userId, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting user from jwt")
+		return ErrBadRequest
+	}
+	log.Println("userID  : ", userId)
+	var movie model.Movie
+	if isMovieDB {
+		movie, err = s.sdk.GetMovieByID(movieID)
+		if err != nil {
+			log.Println("error in getting movie from movieID", err)
+			return err
+		}
+	} else {
+		movie, err = s.dao.GetMovieByMovieID(ctx, movieID)
+		if err != nil {
+			log.Println("error in getting movie from db by movieID", err)
+			return err
+		}
+	}
+	err = s.dao.AddMovieToWatchLater(ctx, userId, movie)
+	if err != nil {
+		log.Println("error in repo layer : ", err)
+		return err
+	}
+	log.Println("successfully updated")
+	return nil
 }

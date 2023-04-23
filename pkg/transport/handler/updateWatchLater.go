@@ -8,16 +8,16 @@ import (
 	"net/http"
 )
 
-type SignInRequest struct {
-	Email        string `json:"email"`
-	PasswordHash string `json:"passwordHash"`
+type UpdateWatchLaterRequest struct {
+	Jwt       string `json:"jwt"`
+	ID        string `json:"id"`
+	IsMovieDB bool   `json:"isMovieDB"`
+	Type      string `json:"type"`
 }
 
-func SignIn(s svc.SVC) http.HandlerFunc {
+func UpdateUserWatchLaterMovie(s svc.SVC) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		log.Println(r.Body)
-		//(w).Header().Set("Access-Control-Allow-Origin", "http://localhost:1234")
-		var request SignInRequest
+		var request UpdateWatchLaterRequest
 		err := json.NewDecoder(r.Body).Decode(&request)
 		if err != nil {
 			log.Println("error in decoding request body...", err)
@@ -26,19 +26,19 @@ func SignIn(s svc.SVC) http.HandlerFunc {
 		}
 
 		log.Println(request)
-		if request.Email == "" || request.PasswordHash == "" {
+		if request.Jwt == "" || request.ID == "" {
 			log.Println("necessary field missing, ", err)
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, errBadRequest)
 			return
 		}
 
-		res, err := s.SignIn(r.Context(), request.Email, request.PasswordHash)
-		if err != nil || res == "" {
-			log.Println("error in signIn...", err)
+		err = s.UpdateWatchLater(r.Context(), request.Jwt, request.ID, request.IsMovieDB, request.Type)
+		if err != nil {
+			log.Println("error in updating watchLater movie...", err)
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, err)
 			return
 		}
-		middleware.WriteJsonHttpResponse(w, http.StatusOK, res)
+		middleware.WriteJsonHttpResponse(w, http.StatusOK, "success")
 
 	}
 }

@@ -6,6 +6,7 @@ import (
 	"context"
 	"github.com/ryanbradynd05/go-tmdb"
 	"log"
+	"strconv"
 	"time"
 )
 
@@ -15,7 +16,7 @@ func InitTMDB() *tmdb.TMDb {
 		Proxies:  nil,
 		UseProxy: false,
 	}
-
+	log.Println("tmdb configured ")
 	return tmdb.Init(config)
 }
 
@@ -28,7 +29,7 @@ func (s *sdk) GetMovieByKeyword(ctx context.Context, tag string) ([]model.Movie,
 	releaseDateGTE := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
 	options := map[string]string{
-		"sort_by":          "release_date.asce", // Sort movies by release date in descending order
+		"sort_by":          "release_date.desc", // Sort movies by release date in descending order
 		"include_adult":    "false",             // Exclude adult movies
 		"release_date.gte": releaseDateGTE,      // Set the minimum release date
 	}
@@ -63,4 +64,49 @@ func (s *sdk) GetMovieByKeyword(ctx context.Context, tag string) ([]model.Movie,
 	}
 
 	return movies, nil
+}
+
+func (s *sdk) GetMovieByID(id string) (model.Movie, error) {
+	if id == "" {
+		log.Println("id is missing")
+		return model.Movie{}, svc.ErrMissingImportantField
+	}
+	options := map[string]string{}
+	mid, err := strconv.Atoi(id)
+	if err != nil {
+		log.Println("error in converting id string to int")
+		return model.Movie{}, svc.ErrUnexpected
+	}
+	res, err := s.tmDb.GetMovieInfo(mid, options)
+	log.Println("result : ", res)
+	if err != nil {
+		log.Println("error in getting MovieInfo", err)
+		return model.Movie{}, err
+	}
+	var lead string
+	if res.Credits != nil {
+		cast := res.Credits.Cast
+		if len(cast) == 1 {
+			lead = cast[0].Name
+		} else if len(cast) == 2 {
+			lead = cast[0].Name + cast[1].Name
+		} else {
+			lead = ""
+		}
+	}
+
+	var tags []string
+	for _, genre := range res.Genres {
+		tags = append(tags, genre.Name)
+	}
+	movie := model.Movie{
+		MovieId:   res.ID,
+		OverView:  res.Overview,
+		Name:      res.Title,
+		Url:       "https://google.com/" + res.Title,
+		ImageUrl:  "https://image.tmdb.org/t/p/w500/" + res.PosterPath,
+		LeadActor: lead,
+		Tags:      tags,
+	}
+	return movie, err
 }

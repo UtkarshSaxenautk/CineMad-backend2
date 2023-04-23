@@ -11,7 +11,7 @@ func (s *svc) GetMoviesByTag(ctx context.Context, tag string) ([]model.Movie, er
 		log.Println("tag is empty")
 		return nil, ErrBadRequest
 	}
-	movies, err := s.sdk.GetMovie(ctx, tag)
+	movies, err := s.sdk.GetMovieByKeyword(ctx, tag)
 	if err != nil {
 		log.Println("error in getting movie by tag ", err)
 		return nil, err
