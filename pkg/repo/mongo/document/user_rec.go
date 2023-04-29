@@ -20,7 +20,8 @@ type User struct {
 	FullName          string               `bson:"full_name,omitempty"`
 	MoviesWatched     []primitive.ObjectID `bson:"movies_watched"`
 	WatchLater        []Movie              `bson:"watch_later"`
-	MoodPreviously    string               `bson:"previous_mood"`
+	MoodPreviously    []string             `bson:"previous_mood"`
+	FavoriteActors    []string             `bson:"favorite_actors"`
 	Dob               DateOfBirth          `bson:"date_of_birth,omitempty"`
 	CreateTs          time.Time            `bson:"create_ts"`
 	UpdateTs          time.Time            `bson:"update_ts"`

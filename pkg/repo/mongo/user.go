@@ -8,6 +8,7 @@ import (
 	"go.mongodb.org/mongo-driver/bson"
 	"go.mongodb.org/mongo-driver/bson/primitive"
 	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
 	"log"
 )
 
@@ -50,8 +51,61 @@ func (d *dal) UpdateWatchLater(ctx context.Context, userId string, movies []stri
 
 }
 
-func (d *dal) UpdateUserMood(ctx context.Context, userId string, mood string) error {
-	if userId == "" || mood == "" {
+func (d *dal) GetWatchLater(ctx context.Context, userID string) ([]model.Movie, error) {
+	if userID == "" {
+		log.Println("userID missing .....")
+		return nil, svc.ErrMissingImportantField
+	}
+	uid, err := primitive.ObjectIDFromHex(userID)
+	if err != nil {
+		log.Println(err)
+		return nil, err
+	}
+
+	var docUser document.User
+	filter := bson.M{
+		"_id": uid,
+	}
+	projection := bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "watch_later", Value: 1},
+	}
+	opts := options.FindOne().SetProjection(projection)
+	res := d.collLogRec.FindOne(ctx, filter, opts)
+	err = res.Err()
+	if err == mongo.ErrNoDocuments {
+		err = svc.ErrNoData
+		return nil, err
+	} else if err != nil {
+		log.Println("error in getting user of this userID")
+		return nil, err
+	}
+	err = res.Decode(&docUser)
+	if err != nil {
+		log.Println("error in decoding result")
+		return nil, err
+	}
+	var movies []model.Movie
+	for _, docMovie := range docUser.WatchLater {
+		temp := model.Movie{
+			ID:        docMovie.ID.Hex(),
+			Name:      docMovie.Name,
+			OverView:  docMovie.OverView,
+			Url:       docMovie.Url,
+			ImageUrl:  docMovie.ImageUrl,
+			LeadActor: docMovie.LeadActor,
+			Tags:      docMovie.Tags,
+		}
+		movies = append(movies, temp)
+	}
+
+	log.Println("got successfully user of userID")
+	return movies, nil
+
+}
+
+func (d *dal) UpdateUserMood(ctx context.Context, userId string, mood []string) error {
+	if userId == "" || len(mood) == 0 {
 		log.Println("important field missing")
 		return svc.ErrMissingImportantField
 	}

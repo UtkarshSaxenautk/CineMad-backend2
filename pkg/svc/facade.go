@@ -27,6 +27,8 @@ type SVC interface {
 	UpdateUserWatchedMovies(ctx context.Context, jwt string, movieID string) error
 	GetUserProfile(ctx context.Context, userID string) (user model.User, err error)
 	UpdateWatchLater(ctx context.Context, jwt string, movieID string, isMovieDB bool, showType string) error
+	GetMoviesAccordingToUserMood(ctx context.Context, jwt string, mood []string) ([]model.Movie, error)
+	GetWatchLater(ctx context.Context, jwt string) ([]model.Movie, error)
 }
 
 //go:generate mockgen -destination=mock_dao.go -package=svc . Dao
@@ -37,12 +39,13 @@ type Dao interface {
 	UpdatePassword(ctx context.Context, user model.User, nPass string) error
 	AddMovie(ctx context.Context, movie model.Movie) error
 	GetMoviesByTags(ctx context.Context, tags []string) ([]model.Movie, error)
-	UpdateUserMood(ctx context.Context, userId string, mood string) error
+	UpdateUserMood(ctx context.Context, userId string, mood []string) error
 	UpdateUserWatchedMovies(ctx context.Context, userID string, movieID string) error
 	CheckEmailExist(ctx context.Context, user model.User) (bool, error)
 	GetUserProfile(ctx context.Context, userID string) (user model.User, err error)
 	GetMovieByMovieID(ctx context.Context, movieID string) (model.Movie, error)
 	AddMovieToWatchLater(ctx context.Context, userID string, movie model.Movie) error
+	GetWatchLater(ctx context.Context, userID string) ([]model.Movie, error)
 }
 
 //go:generate mockgen -destination=mock_svc.go -package=svc . SVC

@@ -33,7 +33,8 @@ type User struct {
 	MoviesWatched            []string
 	MoviesWatchedInformation []Movie
 	WatchLater               []Movie
-	MoodPreviously           string
+	MoodPreviously           []string
+	FavoriteActors           []string
 	Dob                      DateOfBirth
 	CreateTs                 time.Time
 	UpdateTs                 time.Time

@@ -159,8 +159,62 @@ func (s *svc) ChangePassword(ctx context.Context, user model.User, newPassword s
 	return nil
 }
 
-func (s *svc) updateMoodOfUser(ctx context.Context, userID string, mood string) error {
-	if userID == "" || mood == "" {
+var sameMoodGenres = func() map[string][]string {
+	return map[string][]string{
+		"sad":   []string{"depressed", "thriller", "sad", "separation"},
+		"happy": []string{"family", "action", "happy", "drama", "motivation"},
+	}
+}
+
+func (s *svc) getMoodMatcherGenre(moods []string) []string {
+	var resultingTags []string
+	for _, mood := range moods {
+		resultingTags = append(resultingTags, sameMoodGenres()[mood]...)
+	}
+	return resultingTags
+}
+
+func (s *svc) GetMoviesAccordingToUserMood(ctx context.Context, jwt string, mood []string) ([]model.Movie, error) {
+	if jwt == "" {
+		log.Println("jwt is empty")
+		return nil, ErrMissingImportantField
+	}
+	userID, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting userId from jwt", err)
+		return nil, ErrBadRequest
+	}
+	err = s.dao.UpdateUserMood(ctx, userID, mood)
+	if err != nil {
+		log.Println("error in updating user mood")
+	}
+
+	tags := s.getMoodMatcherGenre(mood)
+	log.Println("tags matching mood ", mood, " are : ", tags)
+	if len(tags) == 0 {
+		var movies []model.Movie
+		for _, m := range mood {
+			movie, err := s.sdk.GetMovieByKeyword(ctx, m)
+			if err != nil {
+				log.Println("error in getting movie of mood : ", m)
+				continue
+			}
+			movies = append(movies, movie...)
+		}
+		return movies, nil
+
+	}
+	movies, err := s.dao.GetMoviesByTags(ctx, tags)
+	if err != nil {
+		log.Println("error in getting movies by tags")
+		return nil, err
+	}
+	log.Println("successfully got movies")
+	return movies, nil
+}
+
+func (s *svc) updateMoodOfUser(ctx context.Context, userID string, mood []string) error {
+	if userID == "" || len(mood) == 0 {
 		log.Println("empty fields : ", " userID : ", userID, " mood : ", mood)
 		return ErrMissingImportantField
 	}
@@ -270,6 +324,25 @@ func (s *svc) GetUserProfile(ctx context.Context, jwt string) (user model.User, 
 	}
 	user.MoviesWatchedInformation = movies
 	return
+}
+
+func (s *svc) GetWatchLater(ctx context.Context, jwt string) ([]model.Movie, error) {
+	if jwt == "" {
+		log.Println("userId is empty")
+		return nil, ErrMissingImportantField
+	}
+	userId, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting user from jwt")
+		return nil, ErrBadRequest
+	}
+	movies, err := s.dao.GetWatchLater(ctx, userId)
+	if err != nil {
+		log.Println("error in getting watchLater")
+		return nil, err
+	}
+	log.Println("successfully got watchLater")
+	return movies, nil
 }
 
 func (s *svc) UpdateWatchLater(ctx context.Context, jwt string, movieID string, isMovieDB bool, showType string) error {

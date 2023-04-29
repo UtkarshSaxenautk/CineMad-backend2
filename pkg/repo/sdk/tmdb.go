@@ -29,9 +29,9 @@ func (s *sdk) GetMovieByKeyword(ctx context.Context, tag string) ([]model.Movie,
 	releaseDateGTE := time.Date(2001, time.January, 1, 0, 0, 0, 0, time.UTC).Format("2006-01-02")
 
 	options := map[string]string{
-		"sort_by":          "release_date.desc", // Sort movies by release date in descending order
-		"include_adult":    "false",             // Exclude adult movies
-		"release_date.gte": releaseDateGTE,      // Set the minimum release date
+		// Sort movies by release date in descending order
+		"include_adult":    "false",        // Exclude adult movies
+		"release_date.gte": releaseDateGTE, // Set the minimum release date
 	}
 	res, err := s.tmDb.SearchCollection(tag, options)
 	if err != nil {
