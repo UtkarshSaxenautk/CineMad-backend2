@@ -2,7 +2,7 @@
 FROM golang:1.16-alpine
 
 # Set the working directory to /app
-WORKDIR /
+WORKDIR /app
 
 # Copy the current directory contents into the container at /app
 COPY . /app
