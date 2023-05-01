@@ -5,17 +5,7 @@ FROM golang:1.16-alpine
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY . /app
-
-# Download the dependencies and add them to the go.sum file
-RUN go mod download
-RUN go get go.mongodb.org/mongo-driver/x/mongo/driver/ocsp@v1.11.4
-
-# Build the Go app
-RUN go build ./cmd/server
-
-# Expose port 50081
-EXPOSE 50081
+COPY . .
 
 # Set the environment variables
 ENV MOVIE_SERVICE="movierec-ms" \
@@ -25,5 +15,15 @@ ENV MOVIE_SERVICE="movierec-ms" \
     MOVIE_MONGO_CONNECTION_STRING="mongodb+srv://utkarsh:utkuser@movierec.js2kxf5.mongodb.net/?retryWrites=true&w=majority" \
     MOVIE_MONGO_DATABASE="movierecommendation-ms"
 
+RUN go mod download
+RUN go get go.mongodb.org/mongo-driver/x/mongo/driver/ocsp@v1.11.4
+
+
+# Build the Go app
+RUN go build -o server ./cmd/server/main.go
+
+# Expose port 50081
+EXPOSE 50081
+
 # Run the server command by default when the container starts
-CMD ["./server"]
+ENTRYPOINT ["./server"]
