@@ -5,14 +5,14 @@ FROM golang:1.16-alpine
 WORKDIR /app
 
 # Copy the current directory contents into the container at /app
-COPY ./cmd/server /app
+COPY . /app
 
 # Download the dependencies and add them to the go.sum file
 RUN go mod download
 RUN go get go.mongodb.org/mongo-driver/x/mongo/driver/ocsp@v1.11.4
 
 # Build the Go app
-RUN go build -o server ./main.go
+RUN go build ./cmd/server
 
 # Expose port 50081
 EXPOSE 50081
