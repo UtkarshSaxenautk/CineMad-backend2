@@ -48,17 +48,17 @@ func (r *Router) Initialize() *Router {
 	//	})
 	//})
 	cf := (*r).PathPrefix("/authenticate").Subrouter()
-	//(*cf).Use(func(next http.Handler) http.Handler {
-	//	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-	//		// Allow all origins
-	//		w.Header().Set("Access-Control-Allow-Origin", "*")
-	//		// Allow all headers
-	//		w.Header().Set("Access-Control-Allow-Headers", "*")
-	//		// Allow all methods
-	//		w.Header().Set("Access-Control-Allow-Methods", "*")
-	//		next.ServeHTTP(w, r)
-	//	})
-	//})
+	(*cf).Use(func(next http.Handler) http.Handler {
+		return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+			// Allow all origins
+			w.Header().Set("Access-Control-Allow-Origin", "*")
+			// Allow all headers
+			w.Header().Set("Access-Control-Allow-Headers", "*")
+			// Allow all methods
+			w.Header().Set("Access-Control-Allow-Methods", "*")
+			next.ServeHTTP(w, r)
+		})
+	})
 	(*cf).HandleFunc("/health", handler.GetHealth(r.svc)).Methods(http.MethodGet)
 	(*cf).HandleFunc("/signup", handler.Signup(r.svc)).Methods(http.MethodPost, http.MethodOptions)
 	(*cf).HandleFunc("/signIn", handler.SignIn(r.svc)).Methods(http.MethodPost, http.MethodOptions)
