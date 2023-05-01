@@ -45,7 +45,7 @@ func (d *dal) CreateUser(ctx context.Context, user model.User) error {
 		{"password_hash", user.PasswordHash},
 		{"full_name", user.FullName},
 		{"movies_watched", []primitive.ObjectID{}},
-		{"previous_mood", ""},
+		{"previous_mood", nil},
 		{"date_of_birth", user.Dob},
 		{"create_ts", time.Now()},
 		{"update_ts", time.Now()}}
@@ -153,10 +153,14 @@ func (d *dal) GetUser(ctx context.Context, email string) (string, string, error)
 		log.Println("error in updating login_ts ", err)
 		return "", "", svc.ErrUnexpected
 	}
-
+	projection := bson.D{
+		{Key: "_id", Value: 1},
+		{Key: "password_hash", Value: 1},
+	}
+	opts := options.FindOne().SetProjection(projection)
 	if res.ModifiedCount > 0 || res.UpsertedCount > 0 {
 		// If no error get hashedPassword
-		err = d.collLogRec.FindOne(ctx, filter).Decode(&user)
+		err = d.collLogRec.FindOne(ctx, filter, opts).Decode(&user)
 		if err != nil {
 			log.Println("error in getting hash by email : ", err)
 			return "", "", err

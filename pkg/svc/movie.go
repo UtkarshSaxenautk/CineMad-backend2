@@ -41,12 +41,12 @@ func (s *svc) AddMovieInDB(ctx context.Context, movie model.Movie) error {
 		log.Println("important field missing ")
 		return ErrBadRequest
 	}
-	err := s.dao.AddMovie(ctx, movie)
+	mid, err := s.dao.AddMovie(ctx, movie)
 	if err != nil {
 		log.Println("error in adding movie to db ", err)
 		return ErrUnexpected
 	}
-	log.Println("movie: ", movie, "inserted successfully")
+	log.Println("movie: ", movie, "inserted successfully ,", mid)
 	return nil
 }
 

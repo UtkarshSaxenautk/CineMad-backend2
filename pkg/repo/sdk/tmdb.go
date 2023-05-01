@@ -4,9 +4,11 @@ import (
 	"authentication-ms/pkg/model"
 	"authentication-ms/pkg/svc"
 	"context"
+	"fmt"
 	"github.com/ryanbradynd05/go-tmdb"
 	"log"
 	"strconv"
+	"strings"
 	"time"
 )
 
@@ -97,14 +99,15 @@ func (s *sdk) GetMovieByID(id string) (model.Movie, error) {
 
 	var tags []string
 	for _, genre := range res.Genres {
-		tags = append(tags, genre.Name)
+		tags = append(tags, strings.ToLower(genre.Name))
 	}
+	title := strings.Replace(res.Title, " ", "", -1)
 	movie := model.Movie{
 		MovieId:   res.ID,
 		OverView:  res.Overview,
 		Name:      res.Title,
-		Url:       "https://google.com/" + res.Title,
-		ImageUrl:  "https://image.tmdb.org/t/p/w500/" + res.PosterPath,
+		Url:       fmt.Sprintf(`https://google.com/"%s"`, title),
+		ImageUrl:  fmt.Sprintf(`https://image.tmdb.org/t/p/w500/"%s"`, res.PosterPath),
 		LeadActor: lead,
 		Tags:      tags,
 	}

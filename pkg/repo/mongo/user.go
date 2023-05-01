@@ -51,6 +51,42 @@ func (d *dal) UpdateWatchLater(ctx context.Context, userId string, movies []stri
 
 }
 
+func (d *dal) DeleteWatchLater(ctx context.Context, userId string, movieID string) error {
+	if userId == "" {
+		log.Println("important field missing : userID ")
+		return svc.ErrMissingImportantField
+	}
+	uid, err := primitive.ObjectIDFromHex(userId)
+	if err != nil {
+		log.Println("error in converting userId into objectId")
+		return err
+	}
+	filter := bson.M{"_id": uid}
+	mid, err := primitive.ObjectIDFromHex(movieID)
+	if err != nil {
+		if err != nil {
+			log.Println("error in converting userId into objectId")
+			return err
+		}
+	}
+	update := bson.M{"$pull": bson.M{"watch_later": bson.M{"_id": mid}}}
+
+	res, err := d.collLogRec.UpdateOne(ctx, filter, update)
+	if err != nil {
+		log.Println("error in deleting user's watchLater entry")
+		return svc.ErrUnexpected
+	}
+
+	if res.ModifiedCount > 0 || res.UpsertedCount > 0 {
+		log.Println("userID: ", userId, " := deleted movieID: ", movieID, " from user's watchLater successfully")
+		return nil
+	}
+
+	log.Println("error in deleting user's watchLater entry")
+	return svc.ErrUnexpected
+
+}
+
 func (d *dal) GetWatchLater(ctx context.Context, userID string) ([]model.Movie, error) {
 	if userID == "" {
 		log.Println("userID missing .....")
@@ -208,13 +244,17 @@ func (d *dal) GetUserProfile(ctx context.Context, userID string) (user model.Use
 		temp := docMovie.Hex()
 		movies = append(movies, temp)
 	}
+	var moods []string
+	for _, mood := range docUser.MoodPreviously {
+		moods = append(moods, mood)
+	}
 	user = model.User{
 		UserID:         docUser.ID.Hex(),
 		Username:       docUser.Username,
 		Email:          docUser.Email,
 		FullName:       docUser.FullName,
 		MoviesWatched:  movies,
-		MoodPreviously: docUser.MoodPreviously,
+		MoodPreviously: moods,
 	}
 	log.Println("got successfully user of userID")
 	return
@@ -241,7 +281,6 @@ func (d *dal) AddMovieToWatchLater(ctx context.Context, userID string, movie mod
 
 	// create a filter to find the user by ID
 	filter := bson.M{"_id": userObjectID}
-
 	// create an update to add the movie to the watch_later array
 	docMovie := document.Movie{
 		Name:      movie.Name,

@@ -6,6 +6,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
+	"strconv"
 )
 
 type UpdateMoviesRequest struct {
@@ -29,12 +30,22 @@ func UpdateUserWatchedMovie(s svc.SVC) http.HandlerFunc {
 			middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, errBadRequest)
 			return
 		}
-
-		err = s.UpdateUserWatchedMovies(r.Context(), request.Jwt, request.Movie)
-		if err != nil {
-			log.Println("error in updating watched movie...", err)
-			middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, err)
-			return
+		ctx := r.Context()
+		if _, err := strconv.ParseInt(request.Movie, 10, 64); err == nil {
+			log.Println("looks like a number")
+			err = s.UpdateWatchedMovieByMovieID(ctx, request.Jwt, request.Movie)
+			if err != nil {
+				log.Println("error in updating watched movie...", err)
+				middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, err)
+				return
+			}
+		} else {
+			err = s.UpdateUserWatchedMovies(ctx, request.Jwt, request.Movie)
+			if err != nil {
+				log.Println("error in updating watched movie...", err)
+				middleware.WriteJsonHttpErrorResponse(w, http.StatusBadRequest, err)
+				return
+			}
 		}
 		middleware.WriteJsonHttpResponse(w, http.StatusOK, "success")
 

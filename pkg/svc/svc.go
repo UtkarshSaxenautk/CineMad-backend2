@@ -166,10 +166,25 @@ var sameMoodGenres = func() map[string][]string {
 	}
 }
 
+var oppositeMoodGenres = func() map[string][]string {
+	return map[string][]string{
+		"sad":   []string{"family", "love", "mind-refreshing", "motivational", "relaxing", "animation", "comedy", "fun"},
+		"happy": []string{"alone", "aggression", "cringe", "depressing", "horror"},
+	}
+}
+
 func (s *svc) getMoodMatcherGenre(moods []string) []string {
 	var resultingTags []string
 	for _, mood := range moods {
 		resultingTags = append(resultingTags, sameMoodGenres()[mood]...)
+	}
+	return resultingTags
+}
+
+func (s *svc) getMoodChangerGenre(moods []string) []string {
+	var resultingTags []string
+	for _, mood := range moods {
+		resultingTags = append(resultingTags, oppositeMoodGenres()[mood]...)
 	}
 	return resultingTags
 }
@@ -190,6 +205,45 @@ func (s *svc) GetMoviesAccordingToUserMood(ctx context.Context, jwt string, mood
 	}
 
 	tags := s.getMoodMatcherGenre(mood)
+	log.Println("tags matching mood ", mood, " are : ", tags)
+	if len(tags) == 0 {
+		var movies []model.Movie
+		for _, m := range mood {
+			movie, err := s.sdk.GetMovieByKeyword(ctx, m)
+			if err != nil {
+				log.Println("error in getting movie of mood : ", m)
+				continue
+			}
+			movies = append(movies, movie...)
+		}
+		return movies, nil
+
+	}
+	movies, err := s.dao.GetMoviesByTags(ctx, tags)
+	if err != nil {
+		log.Println("error in getting movies by tags")
+		return nil, err
+	}
+	log.Println("successfully got movies")
+	return movies, nil
+}
+
+func (s *svc) GetMoviesOppositeToUserMood(ctx context.Context, jwt string, mood []string) ([]model.Movie, error) {
+	if jwt == "" {
+		log.Println("jwt is empty")
+		return nil, ErrMissingImportantField
+	}
+	userID, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting userId from jwt", err)
+		return nil, ErrBadRequest
+	}
+	err = s.dao.UpdateUserMood(ctx, userID, mood)
+	if err != nil {
+		log.Println("error in updating user mood")
+	}
+
+	tags := s.getMoodChangerGenre(mood)
 	log.Println("tags matching mood ", mood, " are : ", tags)
 	if len(tags) == 0 {
 		var movies []model.Movie
@@ -240,6 +294,37 @@ func (s *svc) UpdateUserWatchedMovies(ctx context.Context, jwt string, movieID s
 	err = s.dao.UpdateUserWatchedMovies(ctx, userID, movieID)
 	if err != nil {
 		log.Println("error in updating watched movies of user : ", userID, " : ", userID)
+		return err
+	}
+	return nil
+}
+
+func (s *svc) UpdateWatchedMovieByMovieID(ctx context.Context, jwt string, movieID string) error {
+	if jwt == "" || movieID == "" {
+		log.Println("empty fields :  jwt : ", jwt, " movieID : ", movieID)
+		return ErrMissingImportantField
+	}
+	userID, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting userID from jwt in svc : ", err)
+		return err
+	}
+
+	movie, err := s.sdk.GetMovieByID(movieID)
+	if err != nil {
+		log.Println("error in getting movie from movieID from sdk")
+		return err
+	}
+
+	mid, err := s.dao.AddMovie(ctx, movie)
+	if err != nil {
+		log.Println("error in adding movie in db")
+		return err
+	}
+
+	err = s.dao.UpdateUserWatchedMovies(ctx, userID, mid)
+	if err != nil {
+		log.Println("error in updating watch movies")
 		return err
 	}
 	return nil
@@ -343,6 +428,25 @@ func (s *svc) GetWatchLater(ctx context.Context, jwt string) ([]model.Movie, err
 	}
 	log.Println("successfully got watchLater")
 	return movies, nil
+}
+
+func (s *svc) DeleteWatchLater(ctx context.Context, jwt string, movieID string) error {
+	if jwt == "" {
+		log.Println("userId is empty")
+		return ErrMissingImportantField
+	}
+	userId, err := s.cache.GetUserIDFromJwt(jwt)
+	if err != nil {
+		log.Println("error in getting user from jwt")
+		return ErrBadRequest
+	}
+	log.Println("userID  : ", userId)
+	err = s.dao.DeleteWatchLater(ctx, userId, movieID)
+	if err != nil {
+		log.Println("error in deleting movie watchLater")
+		return err
+	}
+	return nil
 }
 
 func (s *svc) UpdateWatchLater(ctx context.Context, jwt string, movieID string, isMovieDB bool, showType string) error {

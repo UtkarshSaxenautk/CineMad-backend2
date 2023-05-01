@@ -16,12 +16,21 @@ const (
 	Limit = 50
 )
 
-func (d *dal) AddMovie(ctx context.Context, movie model.Movie) error {
+func (d *dal) AddMovie(ctx context.Context, movie model.Movie) (string, error) {
 	if movie.Url == "" || movie.Name == "" {
 		log.Println("important field missing")
-		return svc.ErrBadRequest
+		return "", svc.ErrBadRequest
 	}
 
+	exist, err := d.checkMovieID(ctx, movie.MovieId)
+	if err != nil {
+		log.Println("error in checking movie existence ")
+		return "", svc.ErrUnexpected
+	}
+	if exist {
+		log.Println("movie already exist")
+		return "", svc.ErrUnexpected
+	}
 	movieDoc := document.Movie{
 		Name:      movie.Name,
 		MovieID:   movie.MovieId,
@@ -37,10 +46,29 @@ func (d *dal) AddMovie(ctx context.Context, movie model.Movie) error {
 	res, err := d.collMovieRec.InsertOne(ctx, movieDoc)
 	if err != nil {
 		log.Println("error in adding new movie in collection")
-		return svc.ErrUnexpected
+		return "", svc.ErrUnexpected
 	}
 	log.Println("_id", res.InsertedID, "movie inserted successfully")
-	return nil
+	objId, ok := res.InsertedID.(primitive.ObjectID)
+	if !ok {
+		log.Println("error in converting insertedId interface to ObjectId   ")
+		return "", svc.ErrUnexpected
+	}
+	return objId.Hex(), nil
+}
+
+func (d *dal) checkMovieID(ctx context.Context, movieID int) (bool, error) {
+	if movieID == 0 {
+		log.Println("important field missing ")
+	}
+
+	filter := bson.M{"movie_id": movieID}
+	countMovie, err := d.collMovieRec.CountDocuments(ctx, filter)
+	if err != nil {
+		log.Fatal("error in checking document email :  ", err)
+		return false, err
+	}
+	return countMovie > 0, nil
 }
 
 func (d *dal) GetMoviesByTags(ctx context.Context, tags []string) ([]model.Movie, error) {
@@ -76,7 +104,7 @@ func (d *dal) GetMoviesByTags(ctx context.Context, tags []string) ([]model.Movie
 			ID:        movie.ID.Hex(),
 			Name:      movie.Name,
 			Url:       movie.Url,
-			ImageUrl:  movie.Url,
+			ImageUrl:  movie.ImageUrl,
 			MovieId:   movie.MovieID,
 			LeadActor: movie.LeadActor,
 			Tags:      movie.Tags,

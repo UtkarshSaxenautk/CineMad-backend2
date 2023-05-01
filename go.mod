@@ -4,26 +4,25 @@ go 1.18
 
 require (
 	github.com/allegro/bigcache/v3 v3.1.0
+	github.com/dgrijalva/jwt-go v3.2.0+incompatible
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/mux v1.8.0
 	github.com/joho/godotenv v1.4.0
 	github.com/kelseyhightower/envconfig v1.4.0
-	go.mongodb.org/mongo-driver v1.11.1
+	github.com/rs/cors v1.9.0
+	github.com/ryanbradynd05/go-tmdb v0.0.0-20230108222638-2a68dc6ff40c
+	github.com/sendgrid/sendgrid-go v3.12.0+incompatible
+	go.mongodb.org/mongo-driver v1.11.4
 	golang.org/x/crypto v0.5.0
 )
 
 require (
-	github.com/dgrijalva/jwt-go v3.2.0+incompatible // indirect
-	github.com/felixge/httpsnoop v1.0.1 // indirect
 	github.com/golang/snappy v0.0.1 // indirect
-	github.com/gorilla/handlers v1.5.1 // indirect
 	github.com/klauspost/compress v1.13.6 // indirect
+	github.com/kylelemons/go-gypsy v1.0.0 // indirect
 	github.com/montanaflynn/stats v0.0.0-20171201202039-1bf9dbcd8cbe // indirect
 	github.com/pkg/errors v0.9.1 // indirect
-	github.com/rs/cors v1.9.0 // indirect
-	github.com/ryanbradynd05/go-tmdb v0.0.0-20230108222638-2a68dc6ff40c // indirect
 	github.com/sendgrid/rest v2.6.9+incompatible // indirect
-	github.com/sendgrid/sendgrid-go v3.12.0+incompatible // indirect
 	github.com/stretchr/testify v1.7.0 // indirect
 	github.com/xdg-go/pbkdf2 v1.0.0 // indirect
 	github.com/xdg-go/scram v1.1.1 // indirect
