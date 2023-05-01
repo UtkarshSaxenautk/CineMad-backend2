@@ -3,7 +3,7 @@
     "env": {
       "GO111MODULE": "on"
     },
-    "command": "go build ./cmd/server && mv server /vercel/path0/server"
+    "command": "go build ./cmd/server"
   },
   "routes": [
     {
