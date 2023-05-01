@@ -12,7 +12,7 @@ RUN go mod download
 RUN go get go.mongodb.org/mongo-driver/x/mongo/driver/ocsp@v1.11.4
 
 # Build the Go app
-RUN go build ./cmd/server
+RUN go build -o server ./cmd/server/main.go
 
 # Expose port 50081
 EXPOSE 50081
