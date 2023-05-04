@@ -161,15 +161,43 @@ func (s *svc) ChangePassword(ctx context.Context, user model.User, newPassword s
 
 var sameMoodGenres = func() map[string][]string {
 	return map[string][]string{
-		"sad":   []string{"depressed", "thriller", "sad", "separation"},
-		"happy": []string{"family", "action", "happy", "drama", "motivation"},
+		"sad":         []string{"depressed", "sad", "separation", "alone", "depressing", "detachment", "sorrow", "crises"},
+		"happy":       []string{"fun", "family", "happy", "drama", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music"},
+		"depressed":   []string{"depressed", "sad", "separation", "alone", "depressing", "detachment", "sorrow", "crises"},
+		"cheerful":    []string{"fun", "family", "happy", "drama", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music"},
+		"good":        []string{"adventrous", "adventure", "comedy", "fantasy", "fantacy", "joyful", "kids", "kid", "women-power"},
+		"thrilling":   []string{"adventrous", "adventure", "crime", "crises", "fight", "horror", "mystery", "thriller", "voilence"},
+		"adventurous": []string{"adventrous", "adventure", "crime", "crises", "fight", "horror", "mystery", "thriller", "voilence"},
+		"nostlagic":   []string{"fun", "family", "happy", "drama", "comedy", "fantasy", "fantacy", "joyful", "kids", "kid"},
+		"bad":         []string{"depressed", "sad", "separation", "alone", "depressing", "detachment", "sorrow", "crises"},
+		"anxious":     []string{"depressed", "sad", "separation", "alone", "depressing", "detachment", "sorrow", "crises"},
+		"stressed":    []string{"crime", "crises", "fight", "horror", "mystery", "thriller", "voilence", "depressed"},
+		"overwhelmed": []string{"crime", "crises", "fight", "horror", "mystery", "thriller", "voilence", "depressed"},
+		"fear":        []string{"adventrous", "adventure", "crime", "crises", "fight", "horror", "mystery", "thriller", "voilence"},
+		"suprise":     []string{"fight", "horror", "mystery", "thriller"},
+		"surprise":    []string{"fight", "horror", "mystery", "thriller"},
+		"disgust":     []string{"fight", "horror", "mystery", "thriller", "crises", "depressing"},
 	}
 }
 
 var oppositeMoodGenres = func() map[string][]string {
 	return map[string][]string{
-		"sad":   []string{"family", "love", "mind-refreshing", "motivational", "relaxing", "animation", "comedy", "fun"},
-		"happy": []string{"alone", "aggression", "cringe", "depressing", "horror"},
+		"sad":         []string{"family", "happy", "drama", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music", "fun"},
+		"happy":       []string{"alone", "aggression", "cringe", "depressing", "horror", "alone", "crises", "depressed", "depressing", "separation", "sorrow"},
+		"depressed":   []string{"family", "happy", "motivation", "comedy", "healing", "heart-pursuing", "loving", "joyful", "life", "kids", "kid", "loving", "music", "fun"},
+		"cheerful":    []string{"alone", "aggression", "cringe", "depressing", "horror", "alone", "crises", "depressed", "depressing", "separation", "sorrow"},
+		"good":        []string{"crime", "detachment", "fight", "psychological", "sorrow", "alone", "horror", "depressing", "depressed"},
+		"thrilling":   []string{"documentary", "emotional", "history", "life", "love", "loving", "psychological"},
+		"adventurous": []string{"documentary", "emotional", "history", "life", "love", "loving", "psychological"},
+		"nostlagic":   []string{"crime", "detachment", "fight", "psychological", "sorrow", "alone", "horror", "depressing", "depressed"},
+		"anxious":     []string{"family", "happy", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music", "fun"},
+		"bad":         []string{"family", "happy", "drama", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music", "fun"},
+		"stressed":    []string{"fun", "family", "happy", "drama", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music"},
+		"overwhelmed": []string{"fun", "family", "happy", "drama", "motivation", "comedy", "healing", "heart-pursuing", "love", "loving", "joyful", "life", "kids", "kid", "loving", "music"},
+		"fear":        []string{"documentary", "emotional", "history", "life", "love", "loving"},
+		"suprise":     []string{"documentary", "emotional", "history", "life", "love", "loving", "psychological"},
+		"surprise":    []string{"documentary", "emotional", "history", "life", "love", "loving", "psychological"},
+		"disgust":     []string{"documentary", "emotional", "history", "life", "love", "loving", "family", "func"},
 	}
 }
 

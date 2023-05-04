@@ -106,8 +106,8 @@ func (s *sdk) GetMovieByID(id string) (model.Movie, error) {
 		MovieId:   res.ID,
 		OverView:  res.Overview,
 		Name:      res.Title,
-		Url:       fmt.Sprintf(`https://google.com/"%s"`, title),
-		ImageUrl:  fmt.Sprintf(`https://image.tmdb.org/t/p/w500/"%s"`, res.PosterPath),
+		Url:       fmt.Sprintf(`https://www.youtube.com/results?search_query=%s`, title),
+		ImageUrl:  fmt.Sprintf(`https://image.tmdb.org/t/p/w500%s`, res.PosterPath),
 		LeadActor: lead,
 		Tags:      tags,
 	}

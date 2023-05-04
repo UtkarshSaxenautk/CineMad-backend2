@@ -159,7 +159,7 @@ func (d *dal) UpdateUserMood(ctx context.Context, userId string, mood []string) 
 	res, err := d.collLogRec.UpdateOne(ctx, filter, update)
 
 	if err != nil {
-		log.Println("error in saving user mood details")
+		log.Println("error in saving user mood details", err)
 		return svc.ErrUnexpected
 	}
 	if res.ModifiedCount > 0 || res.UpsertedCount > 0 {
